@@ -1,3 +1,4 @@
+mod transaction;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -33,6 +34,30 @@ mod tests {
     fn test_insert_and_get() {
         let mut db = Database::new();
 
-        db.insert("key".to_string(), "value".to_string());
+        db.insert("k".to_string(), "v".to_string());
+
+        assert_eq!(db.get("k"), Some(&"v".to_string()))
+    }
+
+    #[test]
+    fn commit_is_visible() {
+        let mut db = Database::new();
+
+        let mut tnx = db.begin();
+        tnx.set("k".to_string(), "v".to_string());
+        tnx.commit();
+
+        assert!(db.get("k") == Some(&"v".to_string()))
+    }
+
+    #[test]
+    fn drop_without_commit_is_rolled_back() {
+        let mut db = Database::new();
+
+        {
+            let mut tnx = db.begin();
+            tnx.set("k".to_string(), "v".to_string());
+        }
+        assert_eq!(db.get("k"), None);
     }
 }
